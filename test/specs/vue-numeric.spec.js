@@ -256,6 +256,17 @@ describe('vue-numeric.vue', () => {
     expect(wrapper.data().total).to.equal(0)
   })
 
+  it('apply null value if user input empty value when empty value set as null', () => {
+    const component = Vue.extend({
+      data: () => ({ total: '' }),
+      template: '<div><vue-numeric v-model="total" :empty-value="null"></vue-numeric></div>',
+      components: { VueNumeric }
+    })
+
+    const wrapper = mount(component)
+    expect(wrapper.data().total).to.equal(null)
+  })
+
   it('apply new separator immediately if it is changed', () => {
     const wrapper = mount(VueNumeric, { propsData: { value: 2000, separator: ',' }})
     wrapper.setProps({ separator: '.' })
