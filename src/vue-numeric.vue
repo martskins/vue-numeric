@@ -135,7 +135,9 @@ export default {
       validator (val) {
         return val === null || typeof val === 'string' || typeof val === 'number';
       },
-      default: 0,
+      default () {
+        return this.emptyValue === null ? null : 0
+      },
       required: true
     },
 
@@ -304,6 +306,8 @@ export default {
       this.$emit('focus', e)
       if (this.valueNumber === 0) {
         this.amount = null
+      } else if (this.isNullOrEmpty(this.valueNumber)) {
+        this.amount = null;
       } else {
         this.amount = accounting.formatMoney(this.valueNumber, {
           symbol: '',
@@ -322,15 +326,20 @@ export default {
       this.process(this.amountNumber)
     },
 
+    isNullOrEmpty (value) {
+      return this.emptyValue === null && (value === '' || value === null);
+    },
+
     /**
      * Validate value before update the component.
      * @param {Number} value
      */
     process (value) {
-      if (value >= this.max) this.update(this.max)
-      if (value <= this.min) this.update(this.min)
-      if (value > this.min && value < this.max) this.update(value)
-      if (!this.minus && value < 0) this.min >= 0 ? this.update(this.min) : this.update(0)
+      if (this.isNullOrEmpty(value)) this.update(value)
+      else if (value >= this.max) this.update(this.max)
+      else if (value <= this.min) this.update(this.min)
+      else if (value > this.min && value < this.max) this.update(value)
+      else if (!this.minus && value < 0) this.min >= 0 ? this.update(this.min) : this.update(0)
     },
 
     /**
@@ -341,7 +350,7 @@ export default {
       const fixedValue = accounting.toFixed(value, this.precision)
       const output = this.outputType.toLowerCase() === 'string' ? fixedValue : Number(fixedValue)
 
-      if (this.emptyValue === null && (this.value === '' || this.value === null)) {
+      if (this.isNullOrEmpty(value)) {
         this.$emit('input', null)
       } else {
         this.$emit('input', output)
@@ -354,6 +363,10 @@ export default {
      * @return {String}
      */
     format (value) {
+      if (value === null) {
+        return null;
+      }
+
       return accounting.formatMoney(value, {
         symbol: this.currency,
         format: this.symbolPosition,
