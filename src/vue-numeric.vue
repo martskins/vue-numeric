@@ -71,7 +71,9 @@ export default {
      * Value when the input is empty
      */
     emptyValue: {
-      type: [Number, String],
+      validator (val) {
+        return val === null || typeof val === 'string' || typeof val === 'number';
+      },
       default: '',
       required: false
     },
@@ -130,7 +132,9 @@ export default {
      * v-model value.
      */
     value: {
-      type: [Number, String],
+      validator (val) {
+        return val === null || typeof val === 'string' || typeof val === 'number';
+      },
       default: 0,
       required: true
     },
@@ -336,7 +340,12 @@ export default {
     update (value) {
       const fixedValue = accounting.toFixed(value, this.precision)
       const output = this.outputType.toLowerCase() === 'string' ? fixedValue : Number(fixedValue)
-      this.$emit('input', output)
+
+      if (this.emptyValue === null) {
+        this.$emit('input', null)
+      } else {
+        this.$emit('input', output)
+      }
     },
 
     /**
@@ -361,6 +370,11 @@ export default {
      */
     unformat (value) {
       const toUnformat = typeof value === 'string' && value === '' ? this.emptyValue : value
+
+      if (toUnformat === null) {
+        return null;
+      }
+
       return accounting.unformat(toUnformat, this.decimalSeparatorSymbol)
     }
   }
