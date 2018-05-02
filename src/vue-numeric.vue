@@ -341,7 +341,7 @@ export default {
       const fixedValue = accounting.toFixed(value, this.precision)
       const output = this.outputType.toLowerCase() === 'string' ? fixedValue : Number(fixedValue)
 
-      if (this.emptyValue === null) {
+      if (this.emptyValue === null && (this.value === '' || this.value === null)) {
         this.$emit('input', null)
       } else {
         this.$emit('input', output)
