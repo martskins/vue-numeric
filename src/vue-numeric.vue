@@ -304,7 +304,7 @@ export default {
      */
     onFocusHandler (e) {
       this.$emit('focus', e)
-      if (this.valueNumber === 0) {
+      if (this.emptyValue !== null && this.valueNumber === 0) {
         this.amount = null
       } else if (this.isNullOrEmpty(this.valueNumber)) {
         this.amount = null;
