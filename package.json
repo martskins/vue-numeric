@@ -1,6 +1,6 @@
 {
   "name": "nettix-vue-numeric",
-  "version": "2.3.2",
+  "version": "2.3.3",
   "description": "Input field component to display currency value based on Vue.",
   "author": "Mats Sibelius (NettiX Oy)",
   "main": "dist/vue-numeric.min.js",
