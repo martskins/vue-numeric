@@ -272,20 +272,22 @@ export default {
   },
 
   mounted () {
-    // Set default value props when placeholder undefined.
-    if (!this.placeholder) {
-      this.process(this.valueNumber)
-      this.amount = this.format(this.valueNumber)
+    const vm = this, {format, placeholder, process, valueNumber} = vm;
+
+    // Set default value props when placeholder undefined or placeholder is defined and valueNumber is set.
+    if ((placeholder && !vm.isNullOrEmpty(valueNumber)) || !placeholder) {
+      process(valueNumber);
+      vm.amount = format(valueNumber);
 
       // In case of delayed props value.
       setTimeout(() => {
-        this.process(this.valueNumber)
-        this.amount = this.format(this.valueNumber)
+        process(valueNumber);
+        vm.amount = format(valueNumber);
       }, 500)
     }
 
     // Set read-only span element's class
-    if (this.readOnly) this.$refs.readOnly.className = this.readOnlyClass
+    if (vm.readOnly) vm.$refs.readOnly.className = vm.readOnlyClass
   },
 
   methods: {
