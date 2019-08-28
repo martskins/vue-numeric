@@ -71,7 +71,9 @@ export default {
      * Value when the input is empty
      */
     emptyValue: {
-      type: [Number, String],
+      validator (val) {
+        return val === null || typeof val === 'string' || typeof val === 'number';
+      },
       default: '',
       required: false
     },
@@ -130,8 +132,12 @@ export default {
      * v-model value.
      */
     value: {
-      type: [Number, String],
-      default: 0,
+      validator (val) {
+        return val === null || typeof val === 'string' || typeof val === 'number';
+      },
+      default () {
+        return this.emptyValue === null ? null : 0
+      },
       required: true
     },
 
@@ -266,20 +272,22 @@ export default {
   },
 
   mounted () {
-    // Set default value props when placeholder undefined.
-    if (!this.placeholder) {
-      this.process(this.valueNumber)
-      this.amount = this.format(this.valueNumber)
+    const vm = this, {format, placeholder, process, valueNumber} = vm;
+
+    // Set default value props when placeholder undefined or placeholder is defined and valueNumber is set.
+    if ((placeholder && !vm.isNullOrEmpty(valueNumber)) || !placeholder) {
+      process(valueNumber);
+      vm.amount = format(valueNumber);
 
       // In case of delayed props value.
       setTimeout(() => {
-        this.process(this.valueNumber)
-        this.amount = this.format(this.valueNumber)
+        process(valueNumber);
+        vm.amount = format(valueNumber);
       }, 500)
     }
 
     // Set read-only span element's class
-    if (this.readOnly) this.$refs.readOnly.className = this.readOnlyClass
+    if (vm.readOnly) vm.$refs.readOnly.className = vm.readOnlyClass
   },
 
   methods: {
@@ -298,8 +306,10 @@ export default {
      */
     onFocusHandler (e) {
       this.$emit('focus', e)
-      if (this.valueNumber === 0) {
+      if (this.emptyValue !== null && this.valueNumber === 0) {
         this.amount = null
+      } else if (this.isNullOrEmpty(this.valueNumber)) {
+        this.amount = null;
       } else {
         this.amount = accounting.formatMoney(this.valueNumber, {
           symbol: '',
@@ -318,15 +328,23 @@ export default {
       this.process(this.amountNumber)
     },
 
+    isNullOrEmpty (value) {
+      return this.emptyValue === null && (value === '' || value === null);
+    },
+
     /**
      * Validate value before update the component.
      * @param {Number} value
      */
     process (value) {
-      if (value >= this.max) this.update(this.max)
-      if (value <= this.min) this.update(this.min)
-      if (value > this.min && value < this.max) this.update(value)
-      if (!this.minus && value < 0) this.min >= 0 ? this.update(this.min) : this.update(0)
+      if (this.isNullOrEmpty(value)) {
+        this.update(value)
+      } else {
+        if (value >= this.max) this.update(this.max)
+        if (value <= this.min) this.update(this.min)
+        if (value > this.min && value < this.max) this.update(value)
+        if (!this.minus && value < 0) this.min >= 0 ? this.update(this.min) : this.update(0)
+      }
     },
 
     /**
@@ -336,7 +354,12 @@ export default {
     update (value) {
       const fixedValue = accounting.toFixed(value, this.precision)
       const output = this.outputType.toLowerCase() === 'string' ? fixedValue : Number(fixedValue)
-      this.$emit('input', output)
+
+      if (this.isNullOrEmpty(value)) {
+        this.$emit('input', null)
+      } else {
+        this.$emit('input', output)
+      }
     },
 
     /**
@@ -345,6 +368,10 @@ export default {
      * @return {String}
      */
     format (value) {
+      if (value === null) {
+        return null;
+      }
+
       return accounting.formatMoney(value, {
         symbol: this.currency,
         format: this.symbolPosition,
@@ -361,6 +388,11 @@ export default {
      */
     unformat (value) {
       const toUnformat = typeof value === 'string' && value === '' ? this.emptyValue : value
+
+      if (toUnformat === null) {
+        return null;
+      }
+
       return accounting.unformat(toUnformat, this.decimalSeparatorSymbol)
     }
   }
